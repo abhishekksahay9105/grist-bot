@@ -1,74 +1,88 @@
+//#include <WiFiClient.h>
+//#include <WiFiServer.h>
+//#include <WiFiUdp.h>
+//#include<ArduinoOTA.h>
+#include <WiFi.h>
 #include<Wire.h>
+#include<SPI.h>
+WiFiClient client1;
+WiFiServer server1(80);
 byte n=1;
-int front=4,right=5,back=6,left=7;
+byte front=4,right=5,back=6,left=7;
 void setup() 
 {
   // put your setup code here, to run once:
   Serial.begin(9600);
+
+  //  wifi related stetup are here
+  WiFi.begin("sahay","12345678");
+ 
+ while(WiFi.status()!=WL_CONNECTED)
+    {
+   Serial.print("..");
+   delay(200);
+ }
+  
+  Serial.println("Wifi is connected");
+  Serial.println(WiFi.localIP());
+  server1.begin();
   Wire.begin();
-  pinMode(3,INPUT);
-  pinMode(2,OUTPUT);
+ 
   DDRC=0x00;
   DDRD=0xf0;
-  PORTD=0xf0;
-  
+  PORTD=0x00;
+  Serial.println("sahay"); 
 }
 
 void loop() 
 {
   // put your main code here, to run repeatedly:
-  while(analogRead(A0)==0)
+  //  client=server1.avaliable();
+ while(server1.available()/*client1==1*/)
   {
-    n=1;
-    toslave();
-    trigger(front);
+    String request=client1.readStringUntil("\n");
+    Serial.println(request);
+    request.trim();
   }
-  trigger(right);
  
-   if(analogRead(A1==0)
-  {
-    n=2;
-    toslave();
-    delay(250);
-  }
-  else
-  {
-    trigger(left);
-    if(analogRead(A3==0)
-  {
-    n=2;
-    toslave(4);
-    delay(250);
-  }
-  else
-  {
-    trigger(back);
-    while(analogRead(A2==0)
-    {
-      search();
-    }
-    
-  }
-  }
-  
-  
+ movement();
+ delay(10);
   
   
 }
 
-void toslave()
+void tomotor(int k)
 {
-  //Wire.requestFrom(8,1); 
- 
-  Wire.beginTransmission(8);
+  //Wire.requestFrom(k,1); 
+  Wire.beginTransmission(k);
   Wire.write(n);
   Wire.endTransmission();
 }
-void trigger(int n)
+
+void trigger()
 {
   byte pre=PORTD;
-  PORTD|=(1<<n);
-  delay(1);
+  PORTD=0xf0;
+  delay(10);
+  front=analogRead(A0);
+  left=analogRead(A1);
+  right=analogRead(A2);
+  back=analogRead(A3);
   PORTD=pre;
-  delay(1);
+  delay(10);
+}
+
+void movement()
+{
+  trigger();
+  delay(10);
+  if(front==0)
+  {n=0;}
+  else if(left==0)
+  {n=90;}
+  else if(right==0)
+  {n=270;}
+  else if(back==0)
+  {n=180;}
+  tomotor(8);
 }
